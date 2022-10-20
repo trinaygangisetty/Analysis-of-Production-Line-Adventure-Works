@@ -73,10 +73,10 @@ FROM AdventureWorks2017.Production.Product
 
  select pc.ProductCategoryID, 
         pc.Name as categoryName, 
-		ps.Name as subCategoryName,
-		p.Name as productName,
-		ROW_NUMBER() OVER(partition by pc.Name order by ps.Name) as categoryCount,
-		ROW_NUMBER() OVER(partition by ps.Name order by ps.name) as subCategoryCount
+        ps.Name as subCategoryName,
+        p.Name as productName,
+	ROW_NUMBER() OVER(partition by pc.Name order by ps.Name) as categoryCount,
+	ROW_NUMBER() OVER(partition by ps.Name order by ps.name) as subCategoryCount
  from AdventureWorks2017.Production.ProductCategory pc
  inner join AdventureWorks2017.Production.ProductSubCategory ps
  on pc.ProductCategoryID = ps.ProductCategoryID
@@ -89,17 +89,17 @@ FROM AdventureWorks2017.Production.Product
  DROP TABLE IF EXISTS #categoryTypes
  CREATE TABLE #categoryTypes(
        categoryId int,
-	   categoryName varchar(50),
-	   subCategoryName varchar(50),
-	   categoryCount int
+       categoryName varchar(50),
+       subCategoryName varchar(50),
+       categoryCount int
 	)
 
 INSERT INTO #categoryTypes 
 SELECT * 
 FROM ( select pc.ProductCategoryID, 
         pc.Name as categoryName, 
-		ps.Name as subCategoryName,
-		ROW_NUMBER() over(partition by pc.Name order by ps.Name) as categoryCount
+        ps.Name as subCategoryName,
+	ROW_NUMBER() over(partition by pc.Name order by ps.Name) as categoryCount
  from AdventureWorks2017.Production.ProductCategory pc
  inner join AdventureWorks2017.Production.ProductSubCategory ps
  on pc.ProductCategoryID = ps.ProductCategoryID
@@ -183,8 +183,8 @@ WITH CTE AS (
         q.Qty as QtyAvailable,
         P.SafetyStockLevel,
         CASE WHEN q.qty >= p.SafetyStockLevel THEN 'SAFE'
-	         ELSE 'DANGER'
-		     END AS SafetyLineIndicator
+	     ELSE 'DANGER'
+             END AS SafetyLineIndicator
  from AdventureWorks2017.Production.Product p
  inner join CTE q
  on p.ProductID = q.ProductID
@@ -193,9 +193,9 @@ WITH CTE AS (
  SELECT q.*,
         p.ReorderPoint,
         IIF(SafetyLineIndicator = 'SAFE', 'N/A', IIF(q.QtyAvailable > p.ReorderPoint, 'IT IS OKAY', 'TIME TO RESTOCK!!')) AS RestockIndicator
-		from AdventureWorks2017.Production.Product p
-        inner join CTE2 q
-        on p.ProductID = q.ProductID;
+from AdventureWorks2017.Production.Product p
+inner join CTE2 q
+on p.ProductID = q.ProductID;
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -221,8 +221,8 @@ from
 (
 select TOP (@n) ProductID,
        sum(OrderQty) as orderQty, 
-	   sum(StockedQty) as stockedQty, 
-	   sum(ScrappedQty) as scrappedQty
+       sum(StockedQty) as stockedQty, 
+       sum(ScrappedQty) as scrappedQty
 from AdventureWorks2017.Production.WorkOrder
 group by ProductID
 order by 2 desc
@@ -239,8 +239,8 @@ select temp.*,
 from(
 select ProductID,
        sum(OrderQty) as orderQty, 
-	   sum(StockedQty) as stockedQty, 
-	   sum(ScrappedQty) as scrappedQty
+       sum(StockedQty) as stockedQty, 
+       sum(ScrappedQty) as scrappedQty
 from AdventureWorks2017.Production.WorkOrder
 group by ProductID
 ) as temp
@@ -248,9 +248,10 @@ group by ProductID
 
 SELECT *,
        CASE WHEN scrappedPercentage > 0.6 THEN 'HIGH LOSS'
-	        WHEN scrappedPercentage > 0.3 THEN 'MEDIUM LOSS'
-			WHEN scrappedPercentage > 0.0 THEN 'LOW LOSS'
-			ELSE 'NO LOSS' END AS lossIndicator
+	    WHEN scrappedPercentage > 0.3 THEN 'MEDIUM LOSS'
+	    WHEN scrappedPercentage > 0.0 THEN 'LOW LOSS'
+	    ELSE 'NO LOSS' 
+	    END AS lossIndicator
 FROM CTE
 order by scrappedPercentage desc;
 
@@ -258,12 +259,12 @@ order by scrappedPercentage desc;
 
 select WorkOrderID,
        ProductID,
-	   OrderQty,
-	   StockedQty,
-	   ScrappedQty,
-	   wo.ScrapReasonID,
-	   Name,
-	   SUM(scrappedQty) over(partition by ProductID order by ProductID ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as rollingSum
+       OrderQty,
+       StockedQty,
+       ScrappedQty,
+       wo.ScrapReasonID,
+       Name,
+       SUM(scrappedQty) over(partition by ProductID order by ProductID ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as rollingSum
 from AdventureWorks2017.Production.WorkOrder wo
 inner join AdventureWorks2017.Production.ScrapReason scr
 on wo.ScrapReasonID = scr.ScrapReasonID
@@ -292,7 +293,7 @@ WITH CTE AS (
 select ProductID,
        sum(extraDays) as extraDays,
        sum(days_required) as totalDaysRequired,
-	   sum(days_taken) as totalDaysTaken
+       sum(days_taken) as totalDaysTaken
 from (select *,
              DATEDIFF( day, StartDate, DueDate ) AS days_required,
              DATEDIFF( day, StartDate, EndDate ) AS days_taken
@@ -338,7 +339,7 @@ where OperationSequence IS NULL;
 
 SELECT *,
        SUM(totalProducts) over(Partition by locationId order by totalProducts desc rows between unbounded preceding and current row) as rollingProductsCount,
-	   SUM(totalProducts) over(Partition by locationId order by totalProducts desc rows between unbounded preceding and unbounded following) as TotalProductsCount
+       SUM(totalProducts) over(Partition by locationId order by totalProducts desc rows between unbounded preceding and unbounded following) as TotalProductsCount
 FROM(
 select loc.LocationID, loc.Name, Shelf, SUM(Quantity) as TotalProducts
 from AdventureWorks2017.Production.Location loc
@@ -389,7 +390,7 @@ FROM AdventureWorks2017.Production.ProductListPriceHistory
 )
 SELECT ProductID, StartDate, EndDate, ListPrice, modifiedPreviousPrice,
        listPrice - modifiedPreviousPrice as priceIncrease,
-	   (ListPrice - modifiedPreviousPrice) / modifiedPreviousPrice * 100 as PercentageIncreaseInPrice
+       (ListPrice - modifiedPreviousPrice) / modifiedPreviousPrice * 100 as PercentageIncreaseInPrice
 From CTE;
 
 -- selecting only aggregated records with all information (latest price records) from the above table.
@@ -406,7 +407,7 @@ FROM AdventureWorks2017.Production.ProductListPriceHistory
 CTE2 AS (
 SELECT ProductID, StartDate, EndDate, ListPrice, modifiedPreviousPrice,
        listPrice - modifiedPreviousPrice as priceIncrease,
-	   (ListPrice - modifiedPreviousPrice) / modifiedPreviousPrice * 100 as PercentageIncreaseInPrice
+       (ListPrice - modifiedPreviousPrice) / modifiedPreviousPrice * 100 as PercentageIncreaseInPrice
 From CTE 
 ),
 CTE3 AS (
@@ -416,20 +417,20 @@ FROM CTE2
 ),
 CTE4 AS (
 SELECT ProductID , StartDate, EndDate, 
-	   ListPrice , modifiedPreviousPrice , PriceIncrease, 
-	   PercentageIncreaseInPrice
+       ListPrice , modifiedPreviousPrice , PriceIncrease, 
+       PercentageIncreaseInPrice
 FROM  CTE3 
 WHERE ranking = 1
 )
 SELECT P.ProductID AS ProductProductID,
        C.ProductID AS ListPriceProductID,
        StartDate, 
-	   EndDate, 
-	   C.ListPrice AS ListPricePrice,
-	   P.ListPrice AS ProductListPrice,
-	   modifiedPreviousPrice as PreviousPrice, 
-	   PriceIncrease, 
-	   PercentageIncreaseInPrice
+       EndDate, 
+       C.ListPrice AS ListPricePrice,
+       P.ListPrice AS ProductListPrice,
+       modifiedPreviousPrice as PreviousPrice, 
+       PriceIncrease, 
+       PercentageIncreaseInPrice
 FROM AdventureWorks2017.Production.Product P
 LEFT JOIN CTE4 C
 ON P.ProductID = C.ProductID
@@ -457,7 +458,7 @@ FROM AdventureWorks2017.Production.ProductCostHistory
 CTE2 AS (
 SELECT ProductID, StartDate, EndDate, StandardCost, modifiedPreviousPrice,
        StandardCost - modifiedPreviousPrice as priceIncrease,
-	   (StandardCost - modifiedPreviousPrice) / modifiedPreviousPrice * 100 as PercentageIncreaseInPrice
+       (StandardCost - modifiedPreviousPrice) / modifiedPreviousPrice * 100 as PercentageIncreaseInPrice
 From CTE 
 ),
 CTE3 AS (
@@ -467,20 +468,20 @@ FROM CTE2
 ),
 CTE4 AS (
 SELECT ProductID , StartDate, EndDate, 
-	   StandardCost , modifiedPreviousPrice , PriceIncrease, 
-	   PercentageIncreaseInPrice
+       StandardCost , modifiedPreviousPrice , PriceIncrease, 
+       PercentageIncreaseInPrice
 FROM  CTE3 
 WHERE ranking = 1
 )
 SELECT P.ProductID AS ProductProductID,
        C.ProductID AS ListPriceProductID,
        StartDate, 
-	   EndDate, 
-	   C.StandardCost AS CostPricePrice,
-	   P.StandardCost AS ProductCostPrice,
-	   modifiedPreviousPrice as PreviousPrice, 
-	   PriceIncrease, 
-	   PercentageIncreaseInPrice
+       EndDate, 
+       C.StandardCost AS CostPricePrice,
+       P.StandardCost AS ProductCostPrice,
+       modifiedPreviousPrice as PreviousPrice, 
+       PriceIncrease, 
+       PercentageIncreaseInPrice
 FROM AdventureWorks2017.Production.Product P
 LEFT JOIN CTE4 C
 ON P.ProductID = C.ProductID
@@ -500,9 +501,9 @@ from AdventureWorks2017.Production.ProductReview; -- only 3 products have been g
 WITH CTE AS (
 SELECT p.ProductID,
        count(p.productID) over(partition by p.productID order by p.productID) as no_of_times_product_reviewed,
-	   pr.ReviewerName, pr.Rating, p.Name, p.ProductNumber,
-	   AVG(Rating) over(partition by p.productID order by p.productID) as averageRating,
-	   AVG(Rating) over(partition by p.productID order by p.productID rows between unbounded preceding and current row) as rollingAverageRating
+       pr.ReviewerName, pr.Rating, p.Name, p.ProductNumber,
+       AVG(Rating) over(partition by p.productID order by p.productID) as averageRating, 
+       AVG(Rating) over(partition by p.productID order by p.productID rows between unbounded preceding and current row) as rollingAverageRating
 from AdventureWorks2017.Production.ProductReview pr
 inner join AdventureWorks2017.Production.Product p
 on pr.ProductID = p.ProductID)
@@ -525,8 +526,9 @@ from AdventureWorks2017.Production.TransactionHistory; -- The table contains for
 
 SELECT TransactionType, count(transactionType) as noOfTransactionsMade,
        CASE WHEN TransactionType = 'S' THEN 'Sales Order'
-	        WHEN TransactionType = 'W' THEN 'Work Order'
-			ELSE 'Purchase Order' END AS TransactionName,
+	    WHEN TransactionType = 'W' THEN 'Work Order'
+	    ELSE 'Purchase Order' 
+	    END AS TransactionName,
 	   SUM(Quantity) as totalQuantityOrdered
 From AdventureWorks2017.Production.TransactionHistory
 group by TransactionType
@@ -538,7 +540,7 @@ ALTER TABLE AdventureWorks2017.Production.TransactionHistory
 DROP COLUMN Amount;
 
 ALTER TABLE AdventureWorks2017.Production.TransactionHistory
-ADD	Amount float;
+ADD Amount float;
 
 UPDATE AdventureWorks2017.Production.TransactionHistory
 SET Amount = Quantity * ActualCost;
@@ -570,9 +572,9 @@ order by Totalsales desc, productID;
 Select *
 from AdventureWorks2017.Sales.ShoppingCartItem;  -- As per Analysis This table has been created only for the representational purposes.
                                                  -- It had only a very few records.
-												 -- It is not linked up to any other table other than production.product as per ERD.
-												 -- This table can be used to analyse the purchase patterns and trends for the products.
-												 -- And also the product which has more tendency to be sold or can be bought can be found out.
+										-- It is not linked up to any other table other than production.product as per ERD.
+										-- This table can be used to analyse the purchase patterns and trends for the products.
+									        -- And also the product which has more tendency to be sold or can be bought can be found out.
 
 -- Statistics of products that are present in the shopping carts of customers.
 
@@ -580,11 +582,11 @@ SELECT *, DENSE_RANK() OVER(order by profitOfCart desc) AS rankOfCartWithmostPro
 from(
 Select ShoppingCartID, SUM(Quantity * StandardCost) as CostPriceOfCart,
        SUM(Quantity * ListPrice) as SellingPriceOfCart,
-	   (SUM(Quantity * ListPrice) - SUM(Quantity * StandardCost)) as ProfitOfCart,
-	   COUNT(pro.productID) as NoOfProductTypesInCart,
-	   COUNT(productLine) as TotalProductLinesInCart,
-	   COUNT(color) as TotalColorsPerCart,
-	   SUM(quantity) as TotalQuantityOfCart
+       (SUM(Quantity * ListPrice) - SUM(Quantity * StandardCost)) as ProfitOfCart,
+       COUNT(pro.productID) as NoOfProductTypesInCart,
+       COUNT(productLine) as TotalProductLinesInCart,
+       COUNT(color) as TotalColorsPerCart,
+       SUM(quantity) as TotalQuantityOfCart
 from AdventureWorks2017.Sales.ShoppingCartItem Sh
 inner join AdventureWorks2017.Production.Product Pro
 on Pro.ProductID = Sh.ProductID
@@ -610,15 +612,15 @@ order by P.ProductID;   -- This tables were used to store images og their respec
 
 SELECT PM.ProductModelID,
        P.ProductID,
-	   P.Name AS ProductName,
-	   P.ProductNumber,
+       P.Name AS ProductName,
+       P.ProductNumber,
        PD.ProductDescriptionID,
-	   PD.Description,
-	   PMPD.CultureID,
-	   C.Name AS CultureName,
-	   PM.Name AS ProductModelName,
-	   PM.CatalogDescription,
-	   PM.Instructions
+       PD.Description,
+       PMPD.CultureID,
+       C.Name AS CultureName,
+       PM.Name AS ProductModelName,
+       PM.CatalogDescription,
+       PM.Instructions
 FROM AdventureWorks2017.Production.ProductModelProductDescriptionCulture PMPD
 INNER JOIN AdventureWorks2017.Production.ProductDescription PD
 ON PMPD.ProductDescriptionID = PD.ProductDescriptionID
@@ -630,37 +632,37 @@ INNER JOIN AdventureWorks2017.Production.Product P
 ON PM.ProductModelID = P.ProductModelID
 
          -- The result of above query can be inserted into a temporary table (which lasts for the total instance of querying until the window is switched off)
-	     -- Further the Temporary table can be queried in order to get the required results that can be either for some particular culture or for some product etc.
+	 -- Further the Temporary table can be queried in order to get the required results that can be either for some particular culture or for some product etc.
 
 
 DROP TABLE IF EXISTS #PMPDC
 CREATE TABLE #PMPDC( 
        ProductModelID int,
-	   ProductID int,
-	   ProductName varchar(50),
-	   ProductNumber varchar(50),
-	   ProductDescriptionID int,
-	   Description nvarchar(500),
-	   CultureID varchar(50),
+       ProductID int,
+       ProductName varchar(50),
+       ProductNumber varchar(50),
+       ProductDescriptionID int,
+       Description nvarchar(500),
+       CultureID varchar(50),
        CultureName varchar(50),
-	   ProductModelName varchar(50),
-	   CatalogDescription xml,
-	   Instructions xml
+       ProductModelName varchar(50),
+       CatalogDescription xml,
+       Instructions xml
 	)
 
 INSERT INTO #PMPDC
 SELECT * 
 FROM ( SELECT PM.ProductModelID,
        P.ProductID,
-	   P.Name AS ProductName,
-	   P.ProductNumber,
+       P.Name AS ProductName,
+       P.ProductNumber,
        PD.ProductDescriptionID,
-	   PD.Description,
-	   PMPD.CultureID,
-	   C.Name AS CultureName,
-	   PM.Name AS ProductModelName,
-	   PM.CatalogDescription,
-	   PM.Instructions
+       PD.Description,
+       PMPD.CultureID,
+       C.Name AS CultureName,
+       PM.Name AS ProductModelName,
+       PM.CatalogDescription,
+       PM.Instructions
 FROM AdventureWorks2017.Production.ProductModelProductDescriptionCulture PMPD
 INNER JOIN AdventureWorks2017.Production.ProductDescription PD
 ON PMPD.ProductDescriptionID = PD.ProductDescriptionID
@@ -688,7 +690,7 @@ ON PM.ProductModelID = P.ProductModelID
 
  declare @cultureList table (
     id int NOT NULL identity PRIMARY KEY,      -- declaring a table variable to store cultureID values
-	cultureID varchar(40)
+    cultureID varchar(40)
  );
  insert into @cultureList select distinct cultureID from #PMPDC;  -- inserting all culture ID Values into the table variable
   
@@ -806,19 +808,19 @@ CTE3 AS (
 select b.ProductAssemblyID, ProductName, totalQty, EndedAssemblyQuantity
 from (SELECT productAssemblyID, 
              sum(perAssemblyQty) as EndedAssemblyQuantity
-	  from CTE
-	  where ended = 1
-	  group by ProductAssemblyID) a
+      from CTE
+      where ended = 1
+      group by ProductAssemblyID) a
 right join CTE2 b
 on a.ProductAssemblyID = b.ProductAssemblyID
 )
 SELECT a.ProductAssemblyID,
        a.ProductName,
-	   a.totalQty,
-	   a.EndedAssemblyQuantity,
-	   b.BillOfMaterialsID,
-	   b.UnitMeasureCode,
-	   c.Name
+       a.totalQty,
+       a.EndedAssemblyQuantity,
+       b.BillOfMaterialsID,
+       b.UnitMeasureCode,
+       c.Name
 FROM CTE3 A
 join AdventureWorks2017.Production.BillOfMaterials b
 on a.ProductAssemblyID = b.ProductAssemblyID
