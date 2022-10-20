@@ -24,7 +24,7 @@ SELECT TOP (1000) [ProductID]
       ,[DiscontinuedDate]
       ,[rowguid]
       ,[ModifiedDate]
-  FROM [AdventureWorks2017].[Production].[Product];
+FROM [AdventureWorks2017].[Production].[Product];
 
 
 SELECT *
@@ -62,8 +62,8 @@ FROM AdventureWorks2017.Production.Product
 
  select pc.ProductCategoryID, 
         pc.Name as categoryName, 
-		ps.Name as subCategoryName,
-		ROW_NUMBER() over(partition by pc.Name order by ps.Name) as categoryCount
+        ps.Name as subCategoryName,
+	ROW_NUMBER() over(partition by pc.Name order by ps.Name) as categoryCount
  from AdventureWorks2017.Production.ProductCategory pc
  inner join AdventureWorks2017.Production.ProductSubCategory ps
  on pc.ProductCategoryID = ps.ProductCategoryID
@@ -156,7 +156,7 @@ from AdventureWorks2017.Production.ProductInventory; --72 products returned (432
 
 --Looking if products with no inventory are stopped being sold.
 
-WITH cte(productID) as(
+ WITH cte(productID) as(
  SELECT ProductID
  from AdventureWorks2017.Production.Product
  EXCEPT
@@ -172,7 +172,7 @@ on p.ProductID = c.productID;  -- there is no direct relationship since some of 
 -- to check which products are in safety stock level and which are not. SAFE(with in level), DANGER(not in safety level)
 -- if safetyline indicator indicates danger, then further checking for restocking point if it is time to restock.
 
-WITH CTE AS (
+ WITH CTE AS (
  SELECT ProductID, sum(Quantity) as Qty
  FROM AdventureWorks2017.Production.ProductInventory
  GROUP BY ProductID
